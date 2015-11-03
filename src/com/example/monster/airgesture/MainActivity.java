@@ -1,5 +1,6 @@
 package com.example.monster.airgesture;
 
+import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
@@ -18,6 +19,8 @@ import android.widget.TextView;
 
 
 import java.util.Arrays;
+
+import org.achartengine.chartdemo.demo.chart.IDemoChart;
 
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
@@ -47,15 +50,19 @@ public class MainActivity extends ActionBarActivity {
 
     //runs after pressing the record button
     public void startRecording(View view){
-        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                44100, AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT, 4096*2);
-        recorderobj=new record();
-        recorderobj.execute();
-        Start();
-        view.setClickable(false);
-        Button btn=(Button)findViewById(R.id.button);
-        btn.setClickable(true);
+//        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+//        		sampleRate, AudioFormat.CHANNEL_IN_MONO,
+//                AudioFormat.ENCODING_PCM_16BIT, 4096*2);
+//        recorderobj=new record();
+//        recorderobj.execute();
+//        Start();
+//        view.setClickable(false);
+//        Button btn=(Button)findViewById(R.id.button);
+//        btn.setClickable(true);
+        
+        IDemoChart iDemoChart=new Test();
+        Intent intent=iDemoChart.execute(this);
+        startActivity(intent);
     }
 
     //runs when the stop button is pressed
