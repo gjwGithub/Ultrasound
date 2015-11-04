@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.achartengine.ChartFactory;
 import org.achartengine.chart.PointStyle;
-import org.achartengine.chartdemo.demo.chart.AbstractDemoChart;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer.FillOutsideLine;

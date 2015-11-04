@@ -20,8 +20,6 @@ import android.widget.TextView;
 
 import java.util.Arrays;
 
-import org.achartengine.chartdemo.demo.chart.IDemoChart;
-
 import edu.emory.mathcs.jtransforms.fft.DoubleFFT_1D;
 
 
@@ -60,7 +58,7 @@ public class MainActivity extends ActionBarActivity {
 //        Button btn=(Button)findViewById(R.id.button);
 //        btn.setClickable(true);
         
-        IDemoChart iDemoChart=new Test();
+        IDemoChart iDemoChart=new Chart();
         Intent intent=iDemoChart.execute(this);
         startActivity(intent);
     }
