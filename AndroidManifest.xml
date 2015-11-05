@@ -25,6 +25,10 @@
             android:name=".Test"
             android:label="@string/title_activity_test" >
         </activity>
+        <activity
+            android:name=".Chart"
+            android:label="@string/title_activity_chart" >
+        </activity>
     </application>
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />

@@ -39,6 +39,10 @@ public class MainActivity extends ActionBarActivity {
     double diff;
     int N=2048;
     String res="";
+    
+    //'rec' variable is used to store the recording(4096 samples)
+    public static short[] rec=new short[4096];
+    
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,19 +52,15 @@ public class MainActivity extends ActionBarActivity {
 
     //runs after pressing the record button
     public void startRecording(View view){
-//        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
-//        		sampleRate, AudioFormat.CHANNEL_IN_MONO,
-//                AudioFormat.ENCODING_PCM_16BIT, 4096*2);
-//        recorderobj=new record();
-//        recorderobj.execute();
-//        Start();
-//        view.setClickable(false);
-//        Button btn=(Button)findViewById(R.id.button);
-//        btn.setClickable(true);
-        
-        IDemoChart iDemoChart=new Chart();
-        Intent intent=iDemoChart.execute(this);
-        startActivity(intent);
+        recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
+        		sampleRate, AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT, 4096*2);
+        recorderobj=new record();
+        recorderobj.execute();
+        Start();
+        view.setClickable(false);
+        Button btn=(Button)findViewById(R.id.button);
+        btn.setClickable(true);
     }
 
     //runs when the stop button is pressed
@@ -75,6 +75,15 @@ public class MainActivity extends ActionBarActivity {
         btn.setClickable(true);
     }
 
+    public void ShowChart(View view){
+//    	IDemoChart iDemoChart=new Chart(rec);
+//        Intent intent=iDemoChart.execute(this);
+//        startActivity(intent);
+    	Intent intent = new Intent();
+		intent.setClass(MainActivity.this, Chart.class);
+		startActivity(intent);
+    }
+    
     private class record extends AsyncTask<Object,String,String> {
 
         @Override
@@ -83,8 +92,7 @@ public class MainActivity extends ActionBarActivity {
                     AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
 
             Log.i("audio","buffersize:"+bufferSize);
-            //'rec' variable is used to store the recording(4096 samples)
-            short[] rec=new short[4096];
+            
             //'re' and 're2' variables are used to store 2048 samples each taken from 'rec' variable
             short[] re=new short[2048];
             short[] re2=new short[2048];

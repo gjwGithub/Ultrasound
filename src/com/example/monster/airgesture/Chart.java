@@ -2,109 +2,197 @@ package com.example.monster.airgesture;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
 import org.achartengine.chart.PointStyle;
+import org.achartengine.model.CategorySeries;
+import org.achartengine.model.TimeSeries;
+import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
-import org.achartengine.renderer.XYSeriesRenderer.FillOutsideLine;
 
-import android.content.Context;
-import android.content.Intent;
+import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 
-/**
- * 销售额对比图表
- */
-public class Chart extends AbstractDemoChart {
-	/**
-	 * 获取图表名称
-	 * 
-	 * @return 图表名称
-	 */
-	public String getName() {
-		return "销售额对比";
+public class Chart extends Activity {
+
+	private Timer timer = new Timer();
+	private GraphicalView chart;
+	private TimerTask task;
+	private int addY = -1;
+	private long addX;
+	/** 曲线数量 */
+	private static final int SERIES_NR = 1;
+	private static final String TAG = "message";
+	private TimeSeries series1;
+	private XYMultipleSeriesDataset dataset1;
+	private Handler handler;
+	/** 时间数据 */
+	double[] xcache = new double[4096];
+	/** 数据 */
+	int[] ycache = new int[4096];
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_chart);
+
+		LinearLayout layout = (LinearLayout) findViewById(R.id.linearLayout);
+		// 生成图表
+		chart = ChartFactory.getCubeLineChartView(this, getDateDemoDataset(),
+				getDemoRenderer(), 0.5f);
+		layout.addView(chart, new LayoutParams(LayoutParams.WRAP_CONTENT, 380));
+		handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				// 刷新图表
+				updateChart();
+				super.handleMessage(msg);
+			}
+		};
+		task = new TimerTask() {
+			@Override
+			public void run() {
+				Message message = new Message();
+				message.what = 200;
+				handler.sendMessage(message);
+			}
+		};
+		timer.schedule(task, 1000, 1000);
 	}
 
-	/**
-	 * 获取图表的描述信息
-	 * 
-	 * @return 返回图表的详细信息
-	 */
-	public String getDesc() {
-		return "2年内的月度销售额发展 (插入了 折线图 和 面积图)";
-	}
+	private void updateChart() {
+//		// 设定长度为4096
+//		int length = series1.getItemCount();
+//		if (length >= 4096)
+//			length = 4096;
+//		addY = random.nextInt() % 10;
+//		addX = new Date().getTime();
+//
+//		// 将前面的点放入缓存
+//		for (int i = 0; i < length; i++) {
+//			xcache[i] = new Date((long) series1.getX(i));
+//			ycache[i] = (int) series1.getY(i);
+//		}
+//		series1.clear();
+//		series1.add(new Date(addX), addY);
+//		for (int k = 0; k < length; k++) {
+//			series1.add(xcache[k], ycache[k]);
+//		}
+//		// 在数据集中添加新的点集
+//		dataset1.removeSeries(series1);
+//		dataset1.addSeries(series1);
 
-	/**
-	 * 获取图表
-	 * 
-	 * @param context 上下文对象
-	 * @return the built intent
-	 */
-	public Intent execute(Context context) {
-		String[] titles = new String[] { "2008 年销售额", "2007 年销售额",
-		"2008年销售额与2007年对比" };
-
-		/* 初始化数据集 */
+		String[] titles = new String[] { "Chart" };
 		List<double[]> values = new ArrayList<double[]>();
-		/* 2008年销售额 */
-		values.add(new double[] { 14230, 12300, 14240, 15244, 14900, 12200, 11030, 12000, 12500, 15500,
-				14600, 15000 });
-		/* 2007年销售额 */
-		values.add(new double[] { 10230, 10900, 11240, 12540, 13500, 14200, 12530, 11200, 10500, 12500,
-				11600, 13500 });
-
-		/* 计算出两年销售额的对比差 2008年 减去 2007年 */
-		int length = values.get(0).length;
-		double[] diff = new double[length];
-		for (int i = 0; i < length; i++) {
-			diff[i] = values.get(0)[i] - values.get(1)[i];
+		double[] temp = new double[4096];
+		for (int i = 0; i < 4096; i++) {
+			temp[i] = (double) MainActivity.rec[i];
 		}
-		values.add(diff);
+		values.add(temp);
+		dataset1 = buildBarDataset(titles, values);
+		// 曲线更新
+		chart.invalidate();
+	}
 
-		/* 第一条线 蓝色 08年销售额, 第二条线 蓝绿色 07年销售额, 第三个面积图 绿色 两年销售额对比 */
-		int[] colors = new int[] { Color.BLUE, Color.CYAN, Color.GREEN };
-		PointStyle[] styles = new PointStyle[] { PointStyle.POINT, PointStyle.POINT, PointStyle.POINT };
+	protected XYMultipleSeriesDataset buildBarDataset(String[] titles,
+			List<double[]> values) {
+		XYMultipleSeriesDataset dataset = new XYMultipleSeriesDataset();
+		int length = titles.length;
+		for (int i = 0; i < length; i++) {
+			CategorySeries series = new CategorySeries(titles[i]);
+			double[] v = values.get(i);
+			int seriesLength = v.length;
+			for (int k = 0; k < seriesLength; k++) {
+				series.add(v[k]);
+			}
+			dataset.addSeries(series.toXYSeries());
+		}
+		return dataset;
+	}
 
-		/* 创建图表渲染器 */
+	private XYMultipleSeriesRenderer getDemoRenderer() {
+		int[] colors = new int[] { Color.BLUE };
+		PointStyle[] styles = new PointStyle[] { PointStyle.POINT };
 		XYMultipleSeriesRenderer renderer = buildRenderer(colors, styles);
-		setChartSettings(renderer,  /* 渲染器 */
-				"两年内的月度销售额", 	/* 图表标题 */
-				"月份", 				/* x轴标题 */
-				"销售单位", 			/* y轴标题 */
-				0.75,				/* x轴最小值 */
-				12.25, 				/* x轴最大值 */
-				-5000, 				/* y轴最小值 */
-				19000, 				/* y轴最大值 */
-				Color.GRAY, 		/* 坐标轴颜色 */
-				Color.LTGRAY);		/* 标签颜色 标签即 图表标题 xy轴标题 */
+		setChartSettings(renderer, /* 渲染器 */
+				"Record", /* 图表标题 */
+				"Index", /* x轴标题 */
+				"Value", /* y轴标题 */
+				0, /* x轴最小值 */
+				4096, /* x轴最大值 */
+				-32768, /* y轴最小值 */
+				32767, /* y轴最大值 */
+				Color.GRAY, /* 坐标轴颜色 */
+				Color.LTGRAY); /* 标签颜色 标签即 图表标题 xy轴标题 */
 
-		renderer.setXLabels(12);								/* 设置 x 轴刻度个数 */
-		renderer.setYLabels(10);								/* 设置 y 轴刻度个数 */
-		renderer.setChartTitleTextSize(20);						/* 设置表格标题字体大小 */
-		renderer.setTextTypeface("sans_serif", Typeface.BOLD);	/* 设置字体 */
-		renderer.setLabelsTextSize(14f);						/*  */
+		renderer.setXLabels(12); /* 设置 x 轴刻度个数 */
+		renderer.setYLabels(10); /* 设置 y 轴刻度个数 */
+		renderer.setChartTitleTextSize(20); /* 设置表格标题字体大小 */
+		renderer.setTextTypeface("sans_serif", Typeface.BOLD); /* 设置字体 */
+		renderer.setLabelsTextSize(14f); /* 设置字体大小 */
 		renderer.setAxisTitleTextSize(15);
 		renderer.setLegendTextSize(15);
-		length = renderer.getSeriesRendererCount();
-
-		for (int i = 0; i < length; i++) {
-			/* 获取具体的 渲染器 */
-			XYSeriesRenderer seriesRenderer = (XYSeriesRenderer) renderer.getSeriesRendererAt(i);
-			if (i == length - 1) {
-				/* 单独对面积图渲染器进行设置 */
-				FillOutsideLine fill = new FillOutsideLine(FillOutsideLine.Type.BOUNDS_ALL);
-				fill.setColor(Color.GREEN);
-				seriesRenderer.addFillOutsideLine(fill);
-			}
-
-			/* 设置折线图渲染器 */
-			seriesRenderer.setLineWidth(2.5f);
-			seriesRenderer.setDisplayChartValues(true);
-			seriesRenderer.setChartValuesTextSize(10f);
-		}
-		return ChartFactory.getCubicLineChartIntent(context, buildBarDataset(titles, values), renderer,
-				0.5f);
+		return renderer;
 	}
+
+	protected void setChartSettings(XYMultipleSeriesRenderer renderer,
+			String title, String xTitle, String yTitle, double xMin,
+			double xMax, double yMin, double yMax, int axesColor,
+			int labelsColor) {
+		renderer.setChartTitle(title);
+		renderer.setXTitle(xTitle);
+		renderer.setYTitle(yTitle);
+		renderer.setXAxisMin(xMin);
+		renderer.setXAxisMax(xMax);
+		renderer.setYAxisMin(yMin);
+		renderer.setYAxisMax(yMax);
+		renderer.setAxesColor(axesColor);
+		renderer.setLabelsColor(labelsColor);
+	}
+
+	protected XYMultipleSeriesRenderer buildRenderer(int[] colors,
+			PointStyle[] styles) {
+		XYMultipleSeriesRenderer renderer = new XYMultipleSeriesRenderer();
+		setRenderer(renderer, colors, styles);
+		return renderer;
+	}
+
+	protected void setRenderer(XYMultipleSeriesRenderer renderer, int[] colors,
+			PointStyle[] styles) {
+		renderer.setAxisTitleTextSize(16);
+		renderer.setChartTitleTextSize(20);
+		renderer.setLabelsTextSize(15);
+		renderer.setLegendTextSize(15);
+		renderer.setPointSize(5f);
+		renderer.setMargins(new int[] { 20, 30, 15, 20 });
+		int length = colors.length;
+		for (int i = 0; i < length; i++) {
+			XYSeriesRenderer r = new XYSeriesRenderer();
+			r.setColor(colors[i]);
+			r.setPointStyle(styles[i]);
+			renderer.addSeriesRenderer(r);
+		}
+	}
+
+	private XYMultipleSeriesDataset getDateDemoDataset() {
+		dataset1 = new XYMultipleSeriesDataset();
+		return dataset1;
+	}
+
+	@Override
+	public void onDestroy() {
+		// 当结束程序时关掉Timer
+		timer.cancel();
+		super.onDestroy();
+	};
 }
