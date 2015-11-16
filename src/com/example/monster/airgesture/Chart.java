@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
 
 public class Chart extends Activity {
@@ -55,7 +56,7 @@ public class Chart extends Activity {
 				handler.sendMessage(message);
 			}
 		};
-		timer.schedule(task, 2000, 1000);
+		timer.schedule(task, 2000, 500);
 	}
 
 	private void updateChart() {
@@ -63,6 +64,17 @@ public class Chart extends Activity {
 		for (int i = 0; i < 4096; i++) {
 			temp[i] = (double) MainActivity.rec[i];
 		}
+		long v = 0;
+        // 将 buffer 内容取出，进行平方和运算
+        for (int i = 0; i < MainActivity.rec.length; i++) {
+          v += MainActivity.rec[i] * MainActivity.rec[i];
+        }
+        // 平方和除以数据总长度，得到音量大小。
+        double mean = v / (double) MainActivity.length;
+        double volume = 10 * Math.log10(mean);
+        TextView textView=(TextView)findViewById(R.id.volume);
+        textView.setText("Volume: "+volume);
+        
 		buildBarDataset(temp);
 		// 曲线更新
 		chart.invalidate();

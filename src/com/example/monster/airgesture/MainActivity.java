@@ -43,6 +43,7 @@ public class MainActivity extends ActionBarActivity {
     
     //'rec' variable is used to store the recording(4096 samples)
     public static short[] rec=new short[4096];
+    public static int length=0;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +109,7 @@ public class MainActivity extends ActionBarActivity {
             while (isRecording)
             {
                 //record 4096 samples
-                recorder.read(rec,0,4096);
+                length=recorder.read(rec,0,4096);
                 //break them into two 2048 sample bundles
                 re= Arrays.copyOfRange(rec,0,2048);
                 re2= Arrays.copyOfRange(rec,2048,4096);
