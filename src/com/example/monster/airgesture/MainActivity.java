@@ -111,23 +111,23 @@ public class MainActivity extends ActionBarActivity {
                 //record 4096 samples
                 length=recorder.read(rec,0,4096);
                 //break them into two 2048 sample bundles
-                re= Arrays.copyOfRange(rec,0,2048);
-                re2= Arrays.copyOfRange(rec,2048,4096);
-                //convert the stored array of shorts to doubles for the fft function
-                real=floatMe(re);
-                //runs the fft function
-                fft2.realForward(real);
-                //here the 'im' variable is redundant and can be removed, processfft checks for doppler shift after combining real and imaginary parts to get the magnitude of each bin and storing the values in 'abs' variable
-                processfft(real, im);
-                publishProgress(res);
-
-                //this block of code does the same as above for the 're2' variable
-                real=floatMe(re2);
-                fft2.realForward(real);
-                processfft(real,im);
-                publishProgress(res);
-                //i stores the number of iterations
-                i++;
+//                re= Arrays.copyOfRange(rec,0,2048);
+//                re2= Arrays.copyOfRange(rec,2048,4096);
+//                //convert the stored array of shorts to doubles for the fft function
+//                real=floatMe(re);
+//                //runs the fft function
+//                fft2.realForward(real);
+//                //here the 'im' variable is redundant and can be removed, processfft checks for doppler shift after combining real and imaginary parts to get the magnitude of each bin and storing the values in 'abs' variable
+//                processfft(real, im);
+//                publishProgress(res);
+//
+//                //this block of code does the same as above for the 're2' variable
+//                real=floatMe(re2);
+//                fft2.realForward(real);
+//                processfft(real,im);
+//                publishProgress(res);
+//                //i stores the number of iterations
+//                i++;
             }
             return null;
         }

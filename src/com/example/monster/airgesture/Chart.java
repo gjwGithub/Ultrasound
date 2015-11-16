@@ -11,6 +11,7 @@ import org.achartengine.model.XYMultipleSeriesDataset;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
+import android.R.integer;
 import android.app.Activity;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -28,7 +29,8 @@ public class Chart extends Activity {
 	private TimerTask task;
 	private CategorySeries series1;
 	private XYMultipleSeriesDataset dataset1;
-	private Handler handler;
+	private static Handler handler;
+	public static final float pi = 3.1415926f;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,21 +62,35 @@ public class Chart extends Activity {
 	}
 
 	private void updateChart() {
-		double[] temp = new double[4096];
-		for (int i = 0; i < 4096; i++) {
-			temp[i] = (double) MainActivity.rec[i];
+		// double[] temp = new double[4096];
+		// for (int i = 0; i < 4096; i++) {
+		// 		temp[i] = (double) MainActivity.rec[i];
+		// }
+
+		// 保证长度为2的幂次数
+		//int length = up2int(MainActivity.length);
+		int length = 4096;
+		Complex[] complexs = new Complex[length];
+		for (int i = 0; i < length; i++) {
+			complexs[i] = new Complex((double) MainActivity.rec[i]);
 		}
+		fft(complexs, length);
+		double[] temp = new double[length];
+		for (int i = 0; i < length; i++) {
+			temp[i] = complexs[i].getDoubleValue();
+		}
+
 		long v = 0;
-        // 将 buffer 内容取出，进行平方和运算
-        for (int i = 0; i < MainActivity.rec.length; i++) {
-          v += MainActivity.rec[i] * MainActivity.rec[i];
-        }
-        // 平方和除以数据总长度，得到音量大小。
-        double mean = v / (double) MainActivity.length;
-        double volume = 10 * Math.log10(mean);
-        TextView textView=(TextView)findViewById(R.id.volume);
-        textView.setText("Volume: "+volume);
-        
+		// 将 buffer 内容取出，进行平方和运算
+		for (int i = 0; i < MainActivity.rec.length; i++) {
+			v += MainActivity.rec[i] * MainActivity.rec[i];
+		}
+		// 平方和除以数据总长度，得到音量大小。
+		double mean = v / (double) MainActivity.length;
+		double volume = 10 * Math.log10(mean);
+		TextView textView = (TextView) findViewById(R.id.volume);
+		textView.setText("Volume: " + volume);
+
 		buildBarDataset(temp);
 		// 曲线更新
 		chart.invalidate();
@@ -83,7 +99,7 @@ public class Chart extends Activity {
 	protected void buildBarDataset(double[] values) {
 		dataset1.clear();
 		String title = new String("Chart");
-		series1=new CategorySeries(title);
+		series1 = new CategorySeries(title);
 		int seriesLength = values.length;
 		for (int k = 0; k < seriesLength; k++) {
 			series1.add(values[k]);
@@ -169,4 +185,133 @@ public class Chart extends Activity {
 		timer.cancel();
 		super.onDestroy();
 	};
+
+	/**
+	 * 向上取最接近iint的2的幂次数.比如iint=320时,返回256
+	 * 
+	 * @param iint
+	 * @return
+	 */
+	private int up2int(int iint) {
+		int ret = 1;
+		while (ret <= iint) {
+			ret = ret << 1;
+		}
+		return ret >> 1;
+	}
+
+	// 快速傅里叶变换
+	public void fft(Complex[] xin, int N) {
+		int f, m, N2, nm, i, k, j, L;// L:运算级数
+		float p;
+		int e2, le, B, ip;
+		Complex w = new Complex();
+		Complex t = new Complex();
+		N2 = N / 2;// 每一级中蝶形的个数,同时也代表m位二进制数最高位的十进制权值
+		f = N;// f是为了求流程的级数而设立的
+		for (m = 1; (f = f / 2) != 1; m++)
+			; // 得到流程图的共几级
+		nm = N - 2;
+		j = N2;
+		/****** 倒序运算——雷德算法 ******/
+		for (i = 1; i <= nm; i++) {
+			if (i < j)// 防止重复交换
+			{
+				t = xin[j];
+				xin[j] = xin[i];
+				xin[i] = t;
+			}
+			k = N2;
+			while (j >= k) {
+				j = j - k;
+				k = k / 2;
+			}
+			j = j + k;
+		}
+		/****** 蝶形图计算部分 ******/
+		for (L = 1; L <= m; L++) // 从第1级到第m级
+		{
+			e2 = (int) Math.pow(2, L);
+			// e2=(int)2.pow(L);
+			le = e2 + 1;
+			B = e2 / 2;
+			for (j = 0; j < B; j++) // j从0到2^(L-1)-1
+			{
+				p = 2 * pi / e2;
+				w.real = Math.cos(p * j);
+				// w.real=Math.cos((double)p*j); //系数W
+				w.image = Math.sin(p * j) * -1;
+				// w.imag = -sin(p*j);
+				for (i = j; i < N; i = i + e2) // 计算具有相同系数的数据
+				{
+					ip = i + B; // 对应蝶形的数据间隔为2^(L-1)
+					t = xin[ip].cc(w);
+					xin[ip] = xin[i].cut(t);
+					xin[i] = xin[i].sum(t);
+				}
+			}
+		}
+	}
+}
+
+class Complex {
+	public double real;
+	public double image;
+
+	// 三个构造函数
+	public Complex() {
+		// TODO Auto-generated constructor stub
+		this.real = 0;
+		this.image = 0;
+	}
+
+	public Complex(double real, double image) {
+		this.real = real;
+		this.image = image;
+	}
+
+	public Complex(int real, int image) {
+		Integer integer = real;
+		this.real = integer.floatValue();
+		integer = image;
+		this.image = integer.floatValue();
+	}
+
+	public Complex(double real) {
+		this.real = real;
+		this.image = 0;
+	}
+
+	// 乘法
+	public Complex cc(Complex complex) {
+		Complex tmpComplex = new Complex();
+		tmpComplex.real = this.real * complex.real - this.image * complex.image;
+		tmpComplex.image = this.real * complex.image + this.image
+				* complex.real;
+		return tmpComplex;
+	}
+
+	// 加法
+	public Complex sum(Complex complex) {
+		Complex tmpComplex = new Complex();
+		tmpComplex.real = this.real + complex.real;
+		tmpComplex.image = this.image + complex.image;
+		return tmpComplex;
+	}
+
+	// 减法
+	public Complex cut(Complex complex) {
+		Complex tmpComplex = new Complex();
+		tmpComplex.real = this.real - complex.real;
+		tmpComplex.image = this.image - complex.image;
+		return tmpComplex;
+	}
+
+	// 获得一个复数的值
+	public double getDoubleValue() {
+		double ret = 0;
+		ret = (double) Math.round(Math.sqrt(this.real * this.real + this.image
+				* this.image));
+		return ret;
+	}
 }
