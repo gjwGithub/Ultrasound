@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.LinearLayout.LayoutParams;
 
@@ -31,6 +32,7 @@ public class Chart extends Activity {
 	private XYMultipleSeriesDataset dataset1;
 	private static Handler handler;
 	public static final float pi = 3.1415926f;
+	int length = 4096;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,22 +64,30 @@ public class Chart extends Activity {
 	}
 
 	private void updateChart() {
-		// double[] temp = new double[4096];
-		// for (int i = 0; i < 4096; i++) {
-		// 		temp[i] = (double) MainActivity.rec[i];
-		// }
+		RadioButton raw = (RadioButton) findViewById(R.id.raw);
+		RadioButton fft = (RadioButton) findViewById(R.id.fft);
+		boolean rawChecked = raw.isChecked();
+		boolean fftChecked = fft.isChecked();
 
-		// 保证长度为2的幂次数
-		//int length = up2int(MainActivity.length);
-		int length = 4096;
-		Complex[] complexs = new Complex[length];
-		for (int i = 0; i < length; i++) {
-			complexs[i] = new Complex((double) MainActivity.rec[i]);
-		}
-		fft(complexs, length);
 		double[] temp = new double[length];
-		for (int i = 0; i < length; i++) {
-			temp[i] = complexs[i].getDoubleValue();
+		if (rawChecked) {
+			for (int i = 0; i < length; i++) {
+				temp[i] = (double) MainActivity.rec[i];
+			}
+		}
+
+		if (fftChecked) {
+			// 保证长度为2的幂次数
+			// int length = up2int(MainActivity.length);
+			
+			Complex[] complexs = new Complex[length];
+			for (int i = 0; i < length; i++) {
+				complexs[i] = new Complex((double) MainActivity.rec[i]);
+			}
+			fft(complexs, length);
+			for (int i = 0; i < length / 2; i++) {
+				temp[i] = complexs[i].getDoubleValue();
+			}
 		}
 
 		long v = 0;
@@ -116,7 +126,7 @@ public class Chart extends Activity {
 				"Index", /* x轴标题 */
 				"Value", /* y轴标题 */
 				0, /* x轴最小值 */
-				4096, /* x轴最大值 */
+				length, /* x轴最大值 */
 				-32768, /* y轴最小值 */
 				32767, /* y轴最大值 */
 				Color.GRAY, /* 坐标轴颜色 */

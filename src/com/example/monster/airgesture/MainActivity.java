@@ -33,7 +33,7 @@ public class MainActivity extends ActionBarActivity {
     private final int sampleRate = 44100; // Hz
     private final int numSamples = duration * sampleRate;
     private final double sample[] = new double[numSamples];
-    private final double freqOfTone = 20000; // Hz
+    private double freqOfTone = 18000; // Hz
     private final byte generatedSnd[] = new byte[2 * numSamples];
     public static TextView tv;
     double[] abs;
@@ -54,6 +54,9 @@ public class MainActivity extends ActionBarActivity {
 
     //runs after pressing the record button
     public void startRecording(View view){
+    	TextView textView=(TextView)findViewById(R.id.freq);
+    	freqOfTone=Double.parseDouble(textView.getText().toString());
+    	
         recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,
         		sampleRate, AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, 4096*2);

@@ -2,39 +2,39 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:background="#fff">
-
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stop Recording"
-        android:id="@+id/button"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
-        android:onClick="stopRecording"
-        android:textColor="#000"
-        android:visibility="visible" />
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start Recording"
-        android:id="@+id/button2"
-        android:layout_above="@+id/button"
-        android:layout_centerHorizontal="true"
-        android:onClick="startRecording"/>
+    android:background="#fff"
+    android:orientation="vertical" >
 
     <TextView
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Large Text"
-        android:id="@+id/textView2"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:textColor="#000"/>
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="#000" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="104dp"
+        android:onClick="startRecording"
+        android:text="Start Recording" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button2"
+        android:layout_centerHorizontal="true"
+        android:onClick="stopRecording"
+        android:text="Stop Recording"
+        android:textColor="#000"
+        android:visibility="visible" />
 
     <Button
         android:id="@+id/button1"
@@ -42,8 +42,23 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/button"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="30dp"
-        android:text="Chart"
-        android:onClick="ShowChart" />
+        android:layout_marginTop="38dp"
+        android:onClick="ShowChart"
+        android:text="Chart" />
+
+    <EditText
+        android:id="@+id/freq"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/button1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="54dp"
+        android:ems="10"
+        android:hint="Frequency"
+        android:inputType="number"
+        android:text="18000" >
+
+        <requestFocus />
+    </EditText>
 
 </RelativeLayout>
